@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-paper: #f3f5f2;
+  --color-card: #ffffff;
+  --color-ink: #17212b;
+  --color-muted: #55606b;
+  --color-line: #d3d9d4;
+  --color-brand: #0e5a63;
+  --color-brand-dark: #0a444b;
+  --color-alarm: #9c2a1f;
+  --color-hospital: #b83227;
+  --color-evac: #1d7448;
+  --color-fire: #c4620a;
+  --color-police: #2a5aa0;
+}
+
+html, body, #root { height: 100%; }
+body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); }
+
+:focus-visible { outline: 3px solid #f2b01e; outline-offset: 2px; }
+
+/* The map sits on a neutral grid so it still looks intentional when tiles can't load (offline). */
+.map-surface {
+  background-color: #e4e9e5;
+  background-image:
+    linear-gradient(#d3dad5 1px, transparent 1px),
+    linear-gradient(90deg, #d3dad5 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.leaflet-container { background: transparent; font-family: var(--font-sans); }
+
+/* Facility markers: shape + letter + color, so type never depends on color alone. */
+.fmark {
+  display: grid; place-items: center;
+  width: 32px; height: 32px;
+  color: #fff; font-weight: 700; font-size: 15px; line-height: 1;
+  border: 0; filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / .45));
+}
+.fmark > span { display: grid; place-items: center; width: 100%; height: 100%; }
+.fmark--hospital .shape  { border-radius: 9999px; }
+.fmark--evacuation_center .shape { border-radius: 6px; }
+.fmark--fire_station .shape { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.fmark--police_station .shape { clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); }
+.fmark.is-selected { filter: drop-shadow(0 0 0 #fff) drop-shadow(0 0 4px #f2b01e) drop-shadow(0 0 2px #000); transform: scale(1.25); }
+.you-dot {
+  width: 18px; height: 18px; border-radius: 9999px; background: #111;
+  border: 3px solid #fff; box-shadow: 0 0 0 2px #111;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}

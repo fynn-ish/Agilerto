@@ -1,0 +1,5 @@
+ref,agency,number,area,notes,priority,source,verified
+seed:911,National Emergency Hotline,911,National,Police / fire / medical emergencies,1,SAMPLE (confirm before deployment),0
+seed:redcross,Philippine Red Cross,143,National,Emergency and disaster response,2,SAMPLE (confirm before deployment),0
+seed:ndrrmc,NDRRMC Operations Center,(02) 8911-1406,National,Disaster information,3,SAMPLE (confirm before deployment),0
+seed:mdrrmo,Local MDRRMO,ADD LOCAL NUMBER,Lipa City,Replace with your city/municipal DRRMO hotline,4,PLACEHOLDER,0

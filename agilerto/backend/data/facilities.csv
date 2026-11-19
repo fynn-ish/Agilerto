@@ -1,0 +1,16 @@
+ref,type,name,lat,lng,address,phone,capacity,source,verified
+seed:hospital-1,hospital,Mary Mediatrix Medical Center,13.9455,121.1625,"Lipa City, Batangas",,,SAMPLE (approximate coordinates; replace with verified data),0
+seed:hospital-2,hospital,Lipa Medix Medical Center,13.9512,121.1698,"Lipa City, Batangas",,,SAMPLE (approximate coordinates; replace with verified data),0
+seed:hospital-3,hospital,SAMPLE Rural Health Unit - Lipa South,13.9180,121.1590,"Lipa City, Batangas",,,SAMPLE (placeholder; replace with verified data),0
+seed:evac-1,evacuation_center,SAMPLE Evacuation Center - Lipa Central School,13.9440,121.1650,"Lipa City, Batangas",,300,SAMPLE (placeholder; replace with MDRRMO list),0
+seed:evac-2,evacuation_center,SAMPLE Evacuation Center - Barangay Gym North,13.9610,121.1580,"Lipa City, Batangas",,250,SAMPLE (placeholder; replace with MDRRMO list),0
+seed:evac-3,evacuation_center,SAMPLE Evacuation Center - Barangay Hall East,13.9400,121.1850,"Lipa City, Batangas",,150,SAMPLE (placeholder; replace with MDRRMO list),0
+seed:evac-4,evacuation_center,SAMPLE Evacuation Center - Covered Court West,13.9350,121.1420,"Lipa City, Batangas",,200,SAMPLE (placeholder; replace with MDRRMO list),0
+seed:fire-1,fire_station,Lipa City Fire Station (BFP),13.9425,121.1630,"Lipa City, Batangas",,,SAMPLE (approximate coordinates; replace with verified data),0
+seed:fire-2,fire_station,SAMPLE Fire Sub-station - Lipa East,13.9380,121.1800,"Lipa City, Batangas",,,SAMPLE (placeholder; replace with verified data),0
+seed:police-1,police_station,Lipa City Police Station (PNP),13.9415,121.1645,"Lipa City, Batangas",,,SAMPLE (approximate coordinates; replace with verified data),0
+seed:police-2,police_station,SAMPLE Police Community Precinct - Lipa North,13.9590,121.1610,"Lipa City, Batangas",,,SAMPLE (placeholder; replace with verified data),0
+seed:hospital-4,hospital,SAMPLE Hospital - Tanauan,14.0860,121.1500,"Tanauan City, Batangas",,,SAMPLE (placeholder; replace with verified data),0
+seed:evac-5,evacuation_center,SAMPLE Evacuation Center - Tanauan Central,14.0850,121.1480,"Tanauan City, Batangas",,400,SAMPLE (placeholder; replace with MDRRMO list),0
+seed:fire-3,fire_station,SAMPLE Fire Station - Tanauan,14.0870,121.1520,"Tanauan City, Batangas",,,SAMPLE (placeholder; replace with verified data),0
+seed:police-3,police_station,SAMPLE Police Station - Tanauan,14.0865,121.1510,"Tanauan City, Batangas",,,SAMPLE (placeholder; replace with verified data),0

@@ -58,3 +58,20 @@ export async function triggerRefresh() {
   if (!res.ok) throw new Error(`Refresh failed (${res.status})`)
   return res.json()
 }
+
+// Ask the assistant. Answers come only from saved records and always carry citations.
+export async function askChat({ question, lat, lng }, signal) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, lat, lng }),
+    signal,
+  })
+  if (!res.ok) throw new Error(`The assistant returned an error (${res.status})`)
+  return res.json()
+}
+
+// Is the local AI (Ollama) running, and is the model installed?
+export async function fetchAiStatus() {
+  try { return await getJson('/api/ai/status') } catch { return null }
+}

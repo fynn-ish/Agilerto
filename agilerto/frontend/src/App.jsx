@@ -7,6 +7,7 @@ import TypeFilter from './components/TypeFilter'
 import FacilityMap from './components/FacilityMap'
 import FacilityList from './components/FacilityList'
 import ConditionsPanel from './components/ConditionsPanel'
+import ChatPanel from './components/ChatPanel'
 import { useDashboard } from './hooks/useDashboard'
 
 function loadSavedLocation() {
@@ -24,6 +25,8 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [state, setState] = useState({ status: 'loading', facilities: [], fromCache: false, savedAt: null })
   const dash = useDashboard(location)
+  const [tab, setTab] = useState('places')          // 'places' | 'ask'
+  const [cited, setCited] = useState([])            // facilities cited by the assistant's last answer
 
   const updateLocation = useCallback((loc) => {
     setLocation(loc)
@@ -55,6 +58,18 @@ export default function App() {
     [state.facilities, active],
   )
   const hasUnverified = visible.some((f) => !f.verified)
+
+  // Cited places are always drawn on the map, even if they are outside the radius or filtered out of the list.
+  const citedIds = useMemo(() => new Set(cited.map((f) => f.id)), [cited])
+  const mapFacilities = useMemo(() => {
+    const inList = new Set(visible.map((f) => f.id))
+    return [...visible, ...cited.filter((f) => !inList.has(f.id))]
+  }, [visible, cited])
+
+  const showOnMap = useCallback((facility) => {
+    setSelectedId(facility.id)
+    document.getElementById('map-panel')?.scrollIntoView({ block: 'nearest' })
+  }, [])
 
   const toggleType = (key) =>
     setActive((prev) => {
@@ -93,23 +108,43 @@ export default function App() {
         <ConditionsPanel dash={dash} />
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <div className="h-[55vh] lg:sticky lg:top-16 lg:h-[calc(100vh-5rem)]">
+          <div id="map-panel" className="h-[55vh] lg:sticky lg:top-16 lg:h-[calc(100vh-5rem)]">
             <FacilityMap
               center={location}
               radiusKm={radius}
-              facilities={visible}
+              facilities={mapFacilities}
               selectedId={selectedId}
+              citedIds={citedIds}
               onSelect={setSelectedId}
               onPick={({ lat, lng }) => updateLocation({ lat, lng, label: 'the point you picked', source: 'map' })}
             />
           </div>
 
-          <section aria-label="Facility list" aria-busy={state.status === 'loading'}>
-            <h2 className="mb-2 text-lg font-bold">
-              {visible.length} {visible.length === 1 ? 'place' : 'places'} within {radius} km, nearest first
-            </h2>
-            <FacilityList facilities={visible} selectedId={selectedId} onSelect={setSelectedId} />
-          </section>
+          <div>
+            <div role="tablist" aria-label="Panels" className="mb-3 grid grid-cols-2 gap-2">
+              {[['places', 'Nearby places'], ['ask', 'Ask the assistant']].map(([key, label]) => (
+                <button
+                  key={key} type="button" role="tab" id={`tab-${key}`} aria-selected={tab === key} aria-controls={`panel-${key}`}
+                  onClick={() => setTab(key)}
+                  className={`min-h-11 rounded-md border-2 px-3 font-bold ${tab === key ? 'border-brand bg-brand text-white' : 'border-line bg-white'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <section role="tabpanel" id="panel-places" aria-labelledby="tab-places" hidden={tab !== 'places'} aria-busy={state.status === 'loading'}>
+              <h2 className="mb-2 text-lg font-bold">
+                {visible.length} {visible.length === 1 ? 'place' : 'places'} within {radius} km, nearest first
+              </h2>
+              <FacilityList facilities={visible} selectedId={selectedId} onSelect={setSelectedId} />
+            </section>
+
+            {/* Stays mounted while hidden so the conversation is not lost when switching tabs */}
+            <div role="tabpanel" id="panel-ask" aria-labelledby="tab-ask" hidden={tab !== 'ask'}>
+              <ChatPanel location={location} dash={dash} onCite={setCited} onSelectFacility={showOnMap} />
+            </div>
+          </div>
         </div>
       </main>
 

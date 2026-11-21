@@ -2,14 +2,14 @@ import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import { TILE_ATTRIBUTION, TILE_URL, TYPE_BY_KEY } from '../constants'
 
-function facilityIcon(f, selected) {
+function facilityIcon(f, selected, cited = false) {
   const t = TYPE_BY_KEY[f.type]
   return L.divIcon({
     className: '',
     iconSize: [32, 32],
     iconAnchor: [16, 16],
     popupAnchor: [0, -18],
-    html: `<div class="fmark fmark--${f.type}${selected ? ' is-selected' : ''}">
+    html: `<div class="fmark fmark--${f.type}${selected ? ' is-selected' : ''}${cited ? ' is-cited' : ''}">
              <span class="shape" style="background:${t.color}">${t.letter}</span>
            </div>`,
   })
@@ -34,7 +34,7 @@ function popupNode(f) {
   return root
 }
 
-export default function FacilityMap({ center, radiusKm, facilities, selectedId, onSelect, onPick }) {
+export default function FacilityMap({ center, radiusKm, facilities, selectedId, citedIds, onSelect, onPick }) {
   const elRef = useRef(null)
   const mapRef = useRef(null)
   const layersRef = useRef({ markers: L.layerGroup(), you: null, ring: null })
@@ -87,18 +87,31 @@ export default function FacilityMap({ center, radiusKm, facilities, selectedId, 
     })
   }, [facilities])
 
-  // Highlight the selected facility.
+  // Highlight the selected facility and any places the assistant cited.
   useEffect(() => {
     markerById.current.forEach(({ marker, facility }, id) => {
       const on = id === selectedId
-      marker.setIcon(facilityIcon(facility, on))
-      marker.setZIndexOffset(on ? 1000 : 0)
+      marker.setIcon(facilityIcon(facility, on, citedIds?.has(id)))
+      marker.setZIndexOffset(on ? 1000 : citedIds?.has(id) ? 500 : 0)
       if (on) {
         marker.openPopup()
         mapRef.current?.panTo(marker.getLatLng())
       }
     })
-  }, [selectedId, facilities])
+  }, [selectedId, facilities, citedIds])
+
+  // When the assistant cites places, make sure they are all in view.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !citedIds?.size) return
+    const pts = [[center.lat, center.lng]]
+    citedIds.forEach((id) => {
+      const m = markerById.current.get(id)
+      if (m) pts.push([m.facility.lat, m.facility.lng])
+    })
+    if (pts.length > 1) map.fitBounds(pts, { padding: [40, 40], maxZoom: 16 })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [citedIds])
 
   return (
     <div

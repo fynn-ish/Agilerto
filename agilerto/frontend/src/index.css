@@ -49,6 +49,15 @@ body { background: var(--color-paper); color: var(--color-ink); font-family: var
   border: 3px solid #fff; box-shadow: 0 0 0 2px #111;
 }
 
+/* Places the assistant cited: glow + a star badge (shape, not just color). */
+.fmark.is-cited { filter: drop-shadow(0 0 3px #f2b01e) drop-shadow(0 0 2px #f2b01e) drop-shadow(0 1px 1.5px rgb(0 0 0 / .45)); transform: scale(1.15); }
+.fmark.is-cited::after {
+  content: "\2605"; position: absolute; top: -9px; right: -9px; width: 17px; height: 17px;
+  display: grid; place-items: center; border-radius: 9999px; background: #f2b01e; color: #17212b;
+  font-size: 11px; line-height: 1; border: 1.5px solid #17212b;
+}
+.fmark { position: relative; }
+
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }

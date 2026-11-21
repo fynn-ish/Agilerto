@@ -15,7 +15,7 @@ export default function HotlineBar() {
 
   return (
     <>
-      <header className="sticky top-0 z-1000 bg-alarm text-white">
+      <header className="sticky top-0 z-[2000] bg-alarm text-white">
         <nav aria-label="Emergency hotlines" className="mx-auto max-w-7xl overflow-x-auto px-4 py-1.5">
           <ul className="flex items-center gap-5">
             <li className="shrink-0 text-sm font-bold">Call for help</li>

@@ -1,45 +1,18 @@
 import { useState } from 'react'
 import { triggerRefresh } from '../api'
-import { clock, round, timeAgo } from '../time'
+import { clock, round } from '../time'
+import { describeStatus } from '../status'
 import QuakeCard from './QuakeCard'
 import WeatherCard from './WeatherCard'
 
-function latest(a, b) {
-  return [a, b].filter(Boolean).sort().pop() ?? null
-}
-
 // Online/offline status + weather + earthquakes. Collapsible so it doesn't push the map off small screens.
 export default function ConditionsPanel({ dash }) {
-  const { status, data, fromCache, savedAt, nowMs, reload } = dash
+  const { data, fromCache, nowMs, reload } = dash
   const [open, setOpen] = useState(() => window.matchMedia('(min-width: 1024px)').matches)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
 
-  let tone = 'amber'
-  let label = 'Offline'
-  let detail = ''
-  let lastSync = null
-
-  if (status === 'loading') {
-    label = 'Checking'
-    detail = 'Loading saved conditions…'
-  } else if (status === 'error' || !data) {
-    detail = 'Conditions could not be loaded. Check that the backend is running.'
-  } else {
-    lastSync = latest(data.sources.weather.last_success_at, data.sources.earthquakes.last_success_at)
-    if (fromCache) {
-      label = 'Server unreachable'
-      detail = `Showing a copy saved on this device (${clock(savedAt)}).`
-    } else if (data.online) {
-      tone = 'green'
-      label = 'Online'
-      detail = lastSync ? `Data refreshed ${timeAgo(lastSync, nowMs)}.` : 'No live data downloaded yet. Tap Refresh.'
-    } else {
-      detail = lastSync
-        ? `Showing data saved ${clock(lastSync)} (${timeAgo(lastSync, nowMs)}).`
-        : 'No live data saved yet. Connect to the internet once to download it.'
-    }
-  }
+  const { tone, label, detail } = describeStatus(dash)
 
   const canRefresh = data && data.online && !fromCache
   async function refresh() {

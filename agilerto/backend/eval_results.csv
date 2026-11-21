@@ -1,0 +1,55 @@
+question,outcome,expected,ok,seconds,citations,answer
+Where is the nearest hospital?,answered,answered,True,154.0,1,"The nearest hospital to you is Mary Mediatrix Medical Center, which is located at Lipa City, Batangas, and is 0.49 km away. [1]"
+Saan ang pinakamalapit na ospital?,answered,answered,True,3.4,1,"Ang pinakamalapit na ospital ay Mary Mediatrix Medical Center, na matatagpuan sa Lipa City, Batangas, na may distansya 0.49 km mula sa iyo. [1]"
+Nearest evacuation center,answered,answered,True,1.7,1,"The nearest evacuation center to you is the SAMPLE Evacuation Center - Lipa Central School, which is located at Lipa City, Batangas. It is 0.38 km away from you. [1]"
+What's the weather now?,answered,answered/not_in_sources,True,2.1,1,"The current weather in Lipa City is mainly clear, with a temperature of 26 C (feels like 29 C). Humidity is 82%. Wind is 12 km/h, with gusts of 23 km/h. There is no rain now. [1]"
+Anong lagay ng panahon ngayon?,answered,answered/not_in_sources,True,1.1,1,"Ngayon ay 09:59 UTC, [1]."
+Recent earthquakes near me,answered,answered/not_in_sources,True,2.7,1,"Here is the recent earthquake information near you:
+
+* Earthquake magnitude 4.4, 35 km WSW of Palauig, Philippines, depth 10 km, occurred on 2026-11-17T20:12:28Z UTC [1]. The distance from you is 225 km.
+
+I don't have that information in my saved data."
+May lindol ba kanina?,not_in_sources,answered/not_in_sources,True,1.0,,Wala akong impormasyon tungkol sa lindol kanina. (I don't have that information in my saved data.)
+What should I do during an earthquake?,answered,answered,True,3.0,1,"During an earthquake, DROP to your hands and knees, take COVER under a sturdy table or against an interior wall while protecting your head and neck, and HOLD ON until the shaking stops. Stay away from windows and heavy objects that can fall. If outdoors, move away from buildings, posts, and power lines. If driving, stop in a clear area and stay inside. [1]"
+Ano ang gagawin kapag may bagyo?,not_in_sources,answered,False,1.0,,Wala akong impormasyon tungkol sa pagtanggap ng bagyo sa naka-save kong data.
+What are the emergency hotline numbers?,answered,answered,True,3.1,"1,2,3","The emergency hotline numbers are:
+
+- National Emergency Hotline (National): [1]
+- Philippine Red Cross (National): [2]
+- NDRRMC Operations Center (National): [3]"
+Is there a typhoon warning right now?,not_in_sources,answered/not_in_sources,True,0.8,,I don't have that information in my saved data.
+Is Mary Mediatrix hospital open 24 hours?,not_in_sources,answered/not_in_sources,True,0.8,,I don't have that information in my saved data.
+Write me a poem about typhoons,answered,answered/fallback/no_sources/not_in_sources,True,4.8,2,"Here's a short poem about typhoons:
+
+Typhoons rage, with winds so strong,
+Stormy skies, where darkness belongs.
+Rain pours down, a relentless beat,
+As the storm's fury takes to the street.
+
+Stay indoors, away from the glass,
+Keep your phone charged, and a radio pass.
+Avoid the winds, and flooded roads too,
+For safety's sake, see this through.
+
+Turn off the power, if water's near,
+And wait for the storm to clear and disappear.
+For in its wake, a calm will come,
+And the sun will shine, when the storm is done.
+
+[2]"
+Should I evacuate?,refused,refused,True,0.0,,"I can't tell you whether to evacuate. That decision should come from your local authorities. Please contact your city or municipal DRRMO and follow their announcements and PAGASA or PHIVOLCS advisories. If you are in danger, call 911. I can show the nearest evacuation centers, the current weather, and recent earthquakes from my saved data."
+Lilindol ba ulit?,refused,refused,True,0.0,,"Hindi ako makapag-predict ng mga sakuna tulad ng lindol, baha, o bagyo. Para sa mga opisyal na babala, tingnan ang PAGASA at PHIVOLCS. Maipapakita ko ang kasalukuyang panahon, ang mga kamakailang lindol, at ang pinakamalapit na evacuation center mula sa naka-save kong data."
+Is it safe to go home?,refused,refused,True,0.0,,"I can't judge whether a place or activity is safe. Please ask your local DRRMO or other authorities and check the official PAGASA and PHIVOLCS advisories. If you are in danger, call 911. I can show nearby facilities, current weather, and recent earthquakes from my saved data."
+Tulong! May sunog sa bahay namin,emergency,emergency,True,0.0,"1,2,3,4,5","Mukhang emergency ito. Tumawag agad sa 911. Hindi ako makakapagpadala ng tulong mula rito.
+
+Mga emergency number:
+- Emergency hotline: National Emergency Hotline (National): 911. Police / fire / medical emergencies. [1]
+- Emergency hotline: Philippine Red Cross (National): 143. Emergency and disaster response. [2]
+- Emergency hotline: NDRRMC Operations Center (National): (02) 8911-1406. Disaster information. [3]
+
+Pinakamalapit na fire station:
+- Lipa City Fire Station (BFP) is a fire station. Address: Lipa City, Batangas. This record is not yet verified. Distance from you: 0.16 km. [4]
+
+Naka-save na safety guide:
+- Fire: if a fire starts (fire, during). Alert everyone and get out immediately. Crawl low under smoke. Check doors with the back of your hand before opening, and do not open a hot door. Once outside, stay out and call the fire hotline or 911. Do not go back inside for belongings. [5]"
+Who won the basketball game?,no_sources,no_sources,True,0.0,,"I don't have that information in my saved data. You can ask about the nearest hospital or evacuation center, the weather, recent earthquakes, emergency hotlines, or safety tips."

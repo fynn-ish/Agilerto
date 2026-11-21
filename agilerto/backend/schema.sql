@@ -1,4 +1,10 @@
+-- ============================================================
+-- Disaster Info System: SQLite schema
+-- STATIC tables  = permanent data, the offline backbone
+-- DYNAMIC tables = cached online data, always carry fetched_at
+-- ============================================================
 
+-- ---------- STATIC ----------
 CREATE TABLE IF NOT EXISTS facilities (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     ref       TEXT NOT NULL UNIQUE,            -- stable id, e.g. 'seed:lipa-hospital-1' or 'osm:node/123'
@@ -124,3 +130,16 @@ CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks BEGIN
     INSERT INTO chunks_fts(chunks_fts, rowid, title, text) VALUES ('delete', old.id, old.title, old.text);
     INSERT INTO chunks_fts(rowid, title, text) VALUES (new.id, new.title, new.text);
 END;
+
+-- ---------- ASSISTANT LOG (Step 3) ----------
+-- Only problem cases are stored (no answer, AI down, failed citation check) so the team can see
+-- data gaps. Refusals and emergencies are logged without the question text. No coordinates stored.
+CREATE TABLE IF NOT EXISTS chat_log (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at   TEXT NOT NULL,
+    outcome      TEXT NOT NULL,
+    question     TEXT,
+    source_count INTEGER,
+    elapsed_ms   INTEGER,
+    note         TEXT
+);

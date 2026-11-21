@@ -33,3 +33,17 @@ STALE_MINUTES = {"weather": 180, "earthquakes": 120}
 
 HTTP_TIMEOUT = 10
 USER_AGENT = "DisasterInfoSystem/0.2 (student project)"
+
+# ---------- AI assistant (Step 3) ----------
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")     # try qwen2.5:3b too; test Taglish on your laptop
+OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "180"))    # seconds; the first answer also loads the model
+OLLAMA_NUM_CTX = 4096
+OLLAMA_MAX_TOKENS = 350
+MAX_CONCURRENT_LLM = 1          # one answer at a time keeps a small laptop responsive
+
+MAX_SOURCES = 8                 # keep the context short so small models stay accurate
+SOURCE_MAX_CHARS = 700
+FACILITY_RADIUS_KM = 15
+QUAKE_RADIUS_KM = 300
+QUESTION_MAX_CHARS = 500

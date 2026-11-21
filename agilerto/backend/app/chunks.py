@@ -17,7 +17,8 @@ def rebuild_static_chunks(conn: sqlite3.Connection) -> dict:
 
     for r in conn.execute("SELECT * FROM facilities"):
         label = TYPE_LABEL[r["type"]]
-        parts = [f"{r['name']} is a {label}."]
+        article = "an" if label[0] in "aeiou" else "a"
+        parts = [f"{r['name']} is {article} {label}."]
         if r["address"]:
             parts.append(f"Address: {r['address']}.")
         if r["phone"]:

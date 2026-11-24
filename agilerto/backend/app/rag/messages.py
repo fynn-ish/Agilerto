@@ -29,7 +29,15 @@ TEXT = {
         "note_stale": "The {what} data is {age} old. Conditions may have changed.",
         "note_offline": "Offline: live data (weather, earthquakes) is from {when}.",
         "note_unverified": "Some places are not verified yet. Call ahead or confirm with your local DRRMO before travelling.",
-        "what_weather": "weather", "what_quake": "earthquake",
+        "no_advisories": (
+            "I have no saved advisory that answers this. Advisory data: {when}. That does not mean there is "
+            "no warning. Please check PAGASA (typhoons and rain), PHIVOLCS (earthquakes and volcanoes), NDRRMC, and your "
+            "local DRRMO. I can show the current weather and recent earthquakes from my saved data."),
+        "never_checked": "nothing has been downloaded yet",
+        "checked_at": "last checked {time}",
+        "note_gdacs": "GDACS alerts are automated and are not official Philippine warnings. Check PAGASA, PHIVOLCS, NDRRMC, and your local DRRMO.",
+        "note_news": "News headlines come from outside outlets and have not been verified by this system.",
+        "what_weather": "weather", "what_quake": "earthquake", "what_advisory": "advisory", "what_news": "news",
         "kind_hospital": "hospital", "kind_evacuation_center": "evacuation center",
         "kind_fire_station": "fire station", "kind_police_station": "police station",
     },
@@ -60,7 +68,15 @@ TEXT = {
         "note_stale": "Luma na ang {what} data ({age}). Maaaring nagbago na ang kondisyon.",
         "note_offline": "Offline: ang live data (panahon, lindol) ay mula pa noong {when}.",
         "note_unverified": "May mga lugar na hindi pa verified. Tumawag muna o magkumpirma sa lokal na DRRMO bago pumunta.",
-        "what_weather": "panahon", "what_quake": "lindol",
+        "no_advisories": (
+            "Wala akong naka-save na advisory na sasagot dito. Advisory data: {when}. Hindi ibig "
+            "sabihin nito na walang babala. Tingnan ang PAGASA (bagyo at ulan), PHIVOLCS (lindol at bulkan), NDRRMC, at ang "
+            "inyong lokal na DRRMO. Maipapakita ko ang kasalukuyang panahon at ang mga kamakailang lindol mula sa naka-save kong data."),
+        "never_checked": "wala pang na-download",
+        "checked_at": "huling na-check noong {time}",
+        "note_gdacs": "Awtomatiko ang mga alerto ng GDACS at hindi ito opisyal na babala ng Pilipinas. Tingnan ang PAGASA, PHIVOLCS, NDRRMC, at ang lokal na DRRMO.",
+        "note_news": "Ang mga balita ay mula sa labas na news outlet at hindi pa na-verify ng sistemang ito.",
+        "what_weather": "panahon", "what_quake": "lindol", "what_advisory": "advisory", "what_news": "balita",
         "kind_hospital": "ospital", "kind_evacuation_center": "evacuation center",
         "kind_fire_station": "fire station", "kind_police_station": "police station",
     },

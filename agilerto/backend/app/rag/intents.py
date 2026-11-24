@@ -39,6 +39,10 @@ QUAKE_RX = _rx(["earthquake", "earthquakes", "quake", "quakes", "lindol", "lumil
                 "aftershock", "phivolcs", "tremor", "yanig"])
 HOTLINE_RX = _rx(["hotline", "hotlines", "emergency number", "emergency numbers", "phone number", "contact number",
                   "numero", "telepono", "call", "tawag", "tumawag", "911", "red cross", "ndrrmc", "mdrrmo", "drrmo"])
+ADVISORY_RX = _rx(["advisory", "advisories", "warning", "warnings", "alert", "alerts", "bulletin", "bulletins", "signal",
+                   "signals", "wind signal", "tcws", "abiso", "babala", "pagasa", "gdacs"])
+NEWS_RX = _rx(["news", "balita", "headline", "headlines", "what happened", "ano ang nangyari", "nangyari", "ulat",
+               "latest report", "latest reports"])
 HOWTO_RX = _rx(["what should i do", "what do i do", "what to do", "how do i", "how to", "ano ang gagawin",
                 "anong gagawin", "ano gagawin", "paano", "safety", "tips", "precaution", "precautions", "prepare",
                 "preparation", "paghahanda", "handa", "guide", "steps"])
@@ -60,14 +64,22 @@ class Intents:
     phase: str | None = None
     nearby: bool = False
     howto: bool = False
+    advisory: bool = False
+    news: bool = False
+
+    @property
+    def advisory_like(self) -> bool:
+        """Asks about warnings, or about a hazard that official warnings cover (and is not a "what should I do" question)."""
+        return self.advisory or bool(not self.howto and set(self.hazards) & {"typhoon", "flood", "volcanic"})
 
     @property
     def matched_other(self) -> bool:
-        return bool(self.weather or self.quake or self.hazards or self.hotline)
+        return bool(self.weather or self.quake or self.hazards or self.hotline or self.advisory or self.news)
 
     @property
     def matched(self) -> bool:
-        return bool(self.facility_types or self.weather or self.quake or self.hotline or self.hazards or self.nearby)
+        return bool(self.facility_types or self.weather or self.quake or self.hotline or self.hazards or self.nearby
+                    or self.advisory or self.news)
 
 
 def detect(question: str) -> Intents:
@@ -91,6 +103,7 @@ def detect(question: str) -> Intents:
     return Intents(
         facility_types=types, weather=weather, quake=quake, hotline=bool(HOTLINE_RX.search(q)),
         hazards=hazards, phase=phase, nearby=bool(NEARBY_RX.search(q)), howto=howto,
+        advisory=bool(ADVISORY_RX.search(q)) and not howto, news=bool(NEWS_RX.search(q)),
     )
 
 
@@ -102,7 +115,7 @@ we us our you your he she they them their please tell show give need want know a
 help now today currently current right just also very more most than then too not no yes ok okay hi hello po ba ang ng sa
 na ay mga yung ung ko ako namin natin kami kayo ikaw mo niyo nyo ano anong paano saan nasaan may meron mayroon dito doon
 ngayon para lang naman kung at o ito iyan yan pa din rin bang nang kay kanino sino
-pinakamalapit malapit kanina during habang kapag pag gagawin gawin bad
+pinakamalapit malapit kanina during habang kapag pag gagawin gawin bad latest
 """.split())
 
 SYNONYMS = {
@@ -113,6 +126,7 @@ SYNONYMS = {
     "panahon": ["weather"], "hangin": ["wind"], "init": ["temperature"], "evac": ["evacuation"],
     "lilikasan": ["evacuation"], "kanlungan": ["evacuation", "shelter"], "telepono": ["phone"],
     "numero": ["number", "hotline"], "tawag": ["call"], "paghahanda": ["prepare"], "pagkatapos": ["after"],
+    "abiso": ["advisory", "warning"], "babala": ["warning", "advisory"], "balita": ["news"], "ulat": ["report"],
 }
 
 

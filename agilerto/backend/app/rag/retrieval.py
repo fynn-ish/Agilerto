@@ -24,6 +24,7 @@ class Source:
     distance_km: float | None = None
     verified: bool | None = None
     facility: dict | None = None
+    url: str | None = None
     n: int = 0
     extra: dict = field(default_factory=dict)
 
@@ -109,6 +110,56 @@ def recent_quakes(conn, lat, lng, limit=4, days=7) -> list[Source]:
                    distance_km=round(d)) for _, d, r in near[:limit]]
 
 
+_SEVERITY_RANK = {"Bulletin": 4, "Red": 3, "Orange": 2, "Green": 1, "None": 0}
+_HAZARD_TO_NEWS_TAG = {"typhoon": "typhoon", "earthquake": "earthquake", "flood": "flood", "landslide": "landslide",
+                       "volcanic": "volcano"}
+
+
+def advisories(conn, lat, lng, limit=4) -> list[Source]:
+    """Saved advisories, official PAGASA first, then by alert level and distance. Always carries the saved time."""
+    rows = conn.execute(
+        """SELECT c.*, a.severity, a.url AS a_url FROM chunks c JOIN advisories a ON a.ext_id = c.ref_id
+           WHERE c.kind = 'advisory'""").fetchall()
+    ranked = []
+    for r in rows:
+        d = haversine_km(lat, lng, r["lat"], r["lng"]) if r["lat"] is not None else None
+        ranked.append((r["source"] != "PAGASA", -_SEVERITY_RANK.get(r["severity"], 0), d if d is not None else 1e9, r, d))
+    ranked.sort(key=lambda x: x[:3])
+    out = []
+    for *_, r, d in ranked[:limit]:
+        text = r["text"] + (f" The event centre is about {d:.0f} km from you." if d is not None else "")
+        out.append(Source(kind="advisory", ref_id=r["ref_id"], title=r["title"], text=text, source=r["source"],
+                          as_of=r["fetched_at"], lat=r["lat"], lng=r["lng"],
+                          distance_km=round(d) if d is not None else None, url=r["a_url"]))
+    return out
+
+
+def news_items(conn, lat, lng, hazards=(), limit=4) -> list[Source]:
+    """Recent saved headlines, local ones first. Always labeled as reported by an outlet, not verified."""
+    from datetime import timedelta
+    from ..areas import local_tags
+    from ..timeutil import iso
+    cutoff = iso(utc_now() - timedelta(days=config.NEWS_SHOW_DAYS))
+    want = {_HAZARD_TO_NEWS_TAG[h] for h in hazards if h in _HAZARD_TO_NEWS_TAG}
+    local = local_tags(lat, lng)
+    rows = conn.execute(
+        """SELECT c.*, n.tags, n.published_at FROM chunks c JOIN news n ON n.url = c.ref_id
+           WHERE c.kind = 'news' AND COALESCE(n.published_at, n.fetched_at) >= ?""", (cutoff,)).fetchall()
+    ranked, seen = [], set()
+    for r in rows:
+        tags = set((r["tags"] or "").split(","))
+        key = re.sub(r"\W+", "", r["title"].lower())
+        if (want and not tags & want) or key in seen:
+            continue
+        seen.add(key)
+        ranked.append((not (tags & local), r["published_at"] or "", r))
+    # local stories first, then newest first within each group
+    local_rows = sorted((x for x in ranked if not x[0]), key=lambda x: x[1], reverse=True)
+    other_rows = sorted((x for x in ranked if x[0]), key=lambda x: x[1], reverse=True)
+    return [Source(kind="news", ref_id=r["ref_id"], title=r["title"], text=r["text"], source=r["source"],
+                   as_of=r["fetched_at"], url=r["ref_id"]) for _, _, r in (local_rows + other_rows)[:limit]]
+
+
 def hotlines(conn) -> list[Source]:
     out = []
     for r in conn.execute(
@@ -168,9 +219,13 @@ def _fts_sources(conn, question, lat, lng, limit, skip_kinds=(), only_weather_re
                 out.append(_facility_source(f, r["text"], dist))
             continue
         text = r["text"] + (f" Distance from you: {dist:.0f} km." if dist is not None else "")
+        url = r["ref_id"] if kind == "news" else None
+        if kind == "advisory":
+            a = conn.execute("SELECT url FROM advisories WHERE ext_id = ?", (r["ref_id"],)).fetchone()
+            url = a["url"] if a else None
         out.append(Source(kind=kind, ref_id=r["ref_id"], title=r["title"], text=text, source=r["source"],
                           as_of=r["fetched_at"], lat=r["lat"], lng=r["lng"],
-                          distance_km=round(dist) if dist is not None else None))
+                          distance_km=round(dist) if dist is not None else None, url=url))
     return out[:limit]
 
 
@@ -187,6 +242,21 @@ def retrieve(conn, question: str, lat: float, lng: float, max_sources: int = con
         # "what's near me?": the closest one or two of every kind
         for s in nearest_facilities(conn, lat, lng, list(("hospital", "evacuation_center", "fire_station", "police_station")), 1):
             pick.add(s)
+
+    def add_advisories():
+        if it.advisory_like:
+            for s in advisories(conn, lat, lng):
+                pick.add(s)
+
+    def add_news():
+        if it.news:
+            for s in news_items(conn, lat, lng, it.hazards):
+                pick.add(s)
+
+    if it.news and not it.advisory:          # "latest news about the typhoon": headlines first, advisories as context
+        add_news(); add_advisories()
+    else:
+        add_advisories(); add_news()
 
     nearest_w = nearest_weather(conn, lat, lng)
     if it.weather and nearest_w:

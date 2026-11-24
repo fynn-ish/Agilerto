@@ -10,6 +10,23 @@ _NUM_RX = re.compile(r"\d[\d\-\s()]*\d|\d")
 _UNIT_AFTER = re.compile(r"^\s*(km|kilomet|m\b|mm|kph|km/h|°|%|min|mins|minute|h\b|hr|hour|people|persons|katao|meter|metro)", re.I)
 
 
+# The assistant never tells the user to evacuate or that they are safe. A news headline or advisory that says so
+# may be REPORTED ("PAGASA says residents should evacuate"), but a sentence aimed at the user is rejected.
+_DECISION_RX = [re.compile(p, re.I) for p in [
+    r"\byou\s+(?:should|must|need to|have to|ought to|had better)\b[^.!?]{0,40}\b(?:evacuate|leave|go home|stay home|stay put|flee|return)\b",
+    r"\byou(?:'re| are)\s+(?:now\s+)?(?:safe|not safe|unsafe|in danger|out of danger)\b",
+    r"\bno need to (?:evacuate|worry|leave)\b",
+    r"\bsafe to (?:return|go|stay|travel|drive|go home|come back|go back)\b",
+    r"\blumikas na (?:kayo|ka|tayo)\b",
+    r"\b(?:dapat|kailangan) (?:kayong|kang|nating) (?:lumikas|umalis|mag-?evacuate)\b",
+    r"\bligtas na (?:kayo|ka|tayo)\b",
+]]
+
+
+def tells_user_what_to_do(answer: str) -> bool:
+    return any(rx.search(answer) for rx in _DECISION_RX)
+
+
 def cited_numbers(answer: str) -> list[int]:
     """Source numbers cited in the answer, in order, without repeats. Understands [1], [1][2] and [1, 2]."""
     seen: list[int] = []
@@ -48,6 +65,8 @@ def check(answer: str, n_sources: int, allowed_texts: list[str]) -> tuple[str | 
         return f"it cites source numbers that do not exist: {bad}. Valid numbers are 1 to {n_sources}", cited
     if not cited and not NO_INFO_RX.search(answer):
         return "it has no citations like [1]", cited
+    if tells_user_what_to_do(answer):
+        return "it tells the user whether to evacuate or whether they are safe, which this system must never do", cited
     allowed_digits = [re.sub(r"\D", "", a) for a in allowed_texts]
     unsupported = [d for d in phone_like_numbers(answer) if not any(d in a for a in allowed_digits)]
     if unsupported:

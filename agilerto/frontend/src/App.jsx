@@ -6,7 +6,7 @@ import LocationControls from './components/LocationControls'
 import TypeFilter from './components/TypeFilter'
 import FacilityMap from './components/FacilityMap'
 import FacilityList from './components/FacilityList'
-import ConditionsPanel from './components/ConditionsPanel'
+import ConditionsPanel, { alertCount, importantAlerts } from './components/ConditionsPanel'
 import ChatPanel from './components/ChatPanel'
 import { useDashboard } from './hooks/useDashboard'
 
@@ -25,7 +25,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [state, setState] = useState({ status: 'loading', facilities: [], fromCache: false, savedAt: null })
   const dash = useDashboard(location)
-  const [tab, setTab] = useState('places')          // 'places' | 'ask'
+  const [tab, setTab] = useState('places')          // 'places' | 'ask' | 'conditions'
   const [cited, setCited] = useState([])            // facilities cited by the assistant's last answer
 
   const updateLocation = useCallback((loc) => {
@@ -58,6 +58,8 @@ export default function App() {
     [state.facilities, active],
   )
   const hasUnverified = visible.some((f) => !f.verified)
+  const important = importantAlerts(dash)
+  const alerts = alertCount(dash)
 
   // Cited places are always drawn on the map, even if they are outside the radius or filtered out of the list.
   const citedIds = useMemo(() => new Set(cited.map((f) => f.id)), [cited])
@@ -105,7 +107,21 @@ export default function App() {
           </p>
         )}
 
-        <ConditionsPanel dash={dash} />
+        {important.length > 0 && (
+          <div role="alert" className="flex flex-wrap items-center gap-3 rounded-md border-2 border-alarm bg-red-50 p-3">
+            <p className="min-w-0 flex-1">
+              <strong>{important.length === 1 ? 'Active alert' : `${important.length} active alerts`}:</strong>{' '}
+              {important[0].severity === 'Bulletin'
+                ? important[0].title
+                : `${important[0].severity} alert from ${important[0].source}${important[0].source === 'GDACS' ? ' (automated)' : ''}: ${important[0].title}`}
+              {important.length > 1 && ' and more'}
+            </p>
+            <button type="button" onClick={() => setTab('conditions')}
+              className="min-h-11 rounded-md border-2 border-alarm px-4 font-bold text-alarm hover:bg-alarm hover:text-white">
+              View advisories
+            </button>
+          </div>
+        )}
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <div id="map-panel" className="h-[55vh] lg:sticky lg:top-16 lg:h-[calc(100vh-5rem)]">
@@ -121,12 +137,12 @@ export default function App() {
           </div>
 
           <div>
-            <div role="tablist" aria-label="Panels" className="mb-3 grid grid-cols-2 gap-2">
-              {[['places', 'Nearby places'], ['ask', 'Ask the assistant']].map(([key, label]) => (
+            <div role="tablist" aria-label="Panels" className="mb-3 grid grid-cols-3 gap-2">
+              {[['places', 'Nearby places'], ['ask', 'Ask the assistant'], ['conditions', alerts ? `Conditions (${alerts})` : 'Conditions']].map(([key, label]) => (
                 <button
                   key={key} type="button" role="tab" id={`tab-${key}`} aria-selected={tab === key} aria-controls={`panel-${key}`}
                   onClick={() => setTab(key)}
-                  className={`min-h-11 rounded-md border-2 px-3 font-bold ${tab === key ? 'border-brand bg-brand text-white' : 'border-line bg-white'}`}
+                  className={`min-h-11 rounded-md border-2 px-2 text-sm font-bold sm:text-base ${tab === key ? 'border-brand bg-brand text-white' : 'border-line bg-white'}`}
                 >
                   {label}
                 </button>
@@ -139,6 +155,10 @@ export default function App() {
               </h2>
               <FacilityList facilities={visible} selectedId={selectedId} onSelect={setSelectedId} />
             </section>
+
+            <div role="tabpanel" id="panel-conditions" aria-labelledby="tab-conditions" hidden={tab !== 'conditions'}>
+              <ConditionsPanel dash={dash} />
+            </div>
 
             {/* Stays mounted while hidden so the conversation is not lost when switching tabs */}
             <div role="tabpanel" id="panel-ask" aria-labelledby="tab-ask" hidden={tab !== 'ask'}>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { askChat, fetchAiStatus } from '../api'
 import { clock } from '../time'
+import ExternalLink from './ExternalLink'
 import StatusBadge from './StatusBadge'
 
 const SUGGESTIONS = [
@@ -9,11 +10,13 @@ const SUGGESTIONS = [
   "What's the weather now?",
   'Recent earthquakes near me',
   'What should I do during an earthquake?',
+  'Any advisories or warnings?',
+  'Latest news about the typhoon',
   'Emergency hotlines',
   'Saan ang pinakamalapit na ospital?',
 ]
 
-const KIND_LABEL = { facility: 'Place', hotline: 'Hotline', guide: 'Safety guide', weather: 'Weather', quake: 'Earthquake' }
+const KIND_LABEL = { facility: 'Place', hotline: 'Hotline', guide: 'Safety guide', weather: 'Weather', quake: 'Earthquake', advisory: 'Advisory', news: 'News' }
 const CITE_SPLIT = /(\[\d+(?:\s*,\s*\d+)*\])/g
 const CITE_ONE = /^\[(\d+(?:\s*,\s*\d+)*)\]$/
 
@@ -82,6 +85,7 @@ const OUTCOME_TITLE = {
   ai_unavailable: 'Showing saved records (the AI is not running)',
   fallback: 'Showing saved records (answer could not be verified)',
   no_sources: 'Nothing found in saved data',
+  no_advisories: 'No saved advisory (this is not the same as no warning)',
   not_in_sources: 'Not in saved data',
   busy: 'Please wait',
 }
@@ -107,7 +111,7 @@ function AssistantMessage({ msg, onSelectFacility }) {
       {OUTCOME_TITLE[r.outcome] && <p className={`pb-1 text-sm font-bold ${emergency ? 'text-alarm' : ''}`}>{OUTCOME_TITLE[r.outcome]}</p>}
       <AnswerText text={r.answer} onCite={cite} />
 
-      {(emergency || r.outcome === 'refused' || r.outcome === 'no_sources' || r.outcome === 'not_in_sources') && (
+      {(emergency || ['refused', 'no_sources', 'not_in_sources', 'no_advisories'].includes(r.outcome)) && (
         <Hotlines numbers={r.emergency_numbers} />
       )}
 
@@ -140,6 +144,7 @@ function AssistantMessage({ msg, onSelectFacility }) {
                   </span>
                   {c.facility && <span className="font-bold text-brand underline underline-offset-2">Show on map</span>}
                 </button>
+                {c.url && <p className="px-2 pt-0.5 text-sm"><ExternalLink href={c.url}>Read at source</ExternalLink> <span className="text-muted">(needs internet)</span></p>}
               </li>
             ))}
           </ul>

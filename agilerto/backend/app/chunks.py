@@ -68,9 +68,8 @@ def _f(v, unit="", nd=0):
 def rebuild_weather_chunks(conn: sqlite3.Connection) -> int:
     conn.execute("DELETE FROM chunks WHERE kind = 'weather'")
     rows = conn.execute(
-        """SELECT w.lat, w.lng, w.payload_json, w.fetched_at FROM weather w
-           JOIN (SELECT lat, lng, MAX(fetched_at) mf FROM weather GROUP BY lat, lng) m
-             ON w.lat = m.lat AND w.lng = m.lng AND w.fetched_at = m.mf"""
+        """SELECT lat, lng, payload_json, fetched_at FROM weather
+           WHERE id IN (SELECT MAX(id) FROM weather GROUP BY lat, lng)"""     # newest row per city, even if timestamps tie
     ).fetchall()
     n = 0
     for r in rows:
@@ -106,6 +105,57 @@ def rebuild_quake_chunks(conn: sqlite3.Connection, days: int = 7, limit: int = 1
             "INSERT INTO chunks (kind, ref_id, title, text, lat, lng, source, fetched_at) VALUES (?,?,?,?,?,?,?,?)",
             ("quake", r["ext_id"], f"M{r['magnitude']} {r['place'] or ''}".strip(), text,
              r["lat"], r["lng"], r["source"], r["fetched_at"]),
+        )
+        n += 1
+    return n
+
+
+# ---------- advisories and news (Step 4) ----------
+_CATEGORY_LABEL = {"tropical_cyclone": "tropical cyclone", "flood": "flood", "volcano": "volcano", "status": "status"}
+
+
+def _short_date(ts):
+    return ts.replace("T", " ").replace("Z", "")[:16] + " UTC" if ts else None
+
+
+def rebuild_advisory_chunks(conn: sqlite3.Connection) -> int:
+    from datetime import timedelta
+    from . import config
+    conn.execute("DELETE FROM chunks WHERE kind = 'advisory'")
+    cutoff = _iso(_utc_now() - _td(hours=config.ADVISORY_MAX_AGE_HOURS))
+    n = 0
+    for r in conn.execute("SELECT * FROM advisories WHERE fetched_at >= ?", (cutoff,)):
+        if r["source"] == "GDACS":
+            text = (f"Advisory from GDACS ({r['severity']} alert, {_CATEGORY_LABEL.get(r['category'], 'event')}): "
+                    f"{r['title']} {r['body'] or ''}")
+            if r["issued_at"]:
+                text += f" Last updated {_short_date(r['issued_at'])}."
+            text += (" GDACS is an automated alert system of the UN and European Commission. "
+                     "It is not an official Philippine government warning.")
+        else:
+            text = f"{r['source']}: {r['title']}. {r['body'] or ''}"
+        conn.execute(
+            "INSERT INTO chunks (kind, ref_id, title, text, lat, lng, source, fetched_at) VALUES (?,?,?,?,?,?,?,?)",
+            ("advisory", r["ext_id"], r["title"][:120], text.strip(), r["lat"], r["lng"], r["source"], r["fetched_at"]),
+        )
+        n += 1
+    return n
+
+
+def rebuild_news_chunks(conn: sqlite3.Connection) -> int:
+    conn.execute("DELETE FROM chunks WHERE kind = 'news'")
+    row = conn.execute("SELECT last_success_at FROM sync_log WHERE source = 'news'").fetchone()
+    checked = row["last_success_at"] if row else None       # when the news sources were last read, not when each story ran
+    n = 0
+    for r in conn.execute("SELECT * FROM news"):
+        when = _short_date(r["published_at"]) or "an unknown date"
+        text = f"News headline reported by {r['source'] or 'a news outlet'} on {when}: {r['title']}."
+        if r["summary"]:
+            text += f" {r['summary']}"
+        text += " This is a news report and has not been verified by this system."
+        conn.execute(
+            "INSERT INTO chunks (kind, ref_id, title, text, source, fetched_at) VALUES (?,?,?,?,?,?)",
+            ("news", r["url"], r["title"][:120], text, r["source"], checked or r["fetched_at"]),
         )
         n += 1
     return n

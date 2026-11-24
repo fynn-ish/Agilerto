@@ -80,7 +80,10 @@ CREATE TABLE IF NOT EXISTS advisories (
     issued_at  TEXT,
     expires_at TEXT,
     url        TEXT,
-    fetched_at TEXT NOT NULL
+    fetched_at TEXT NOT NULL,
+    lat        REAL,                           -- event centre, when the source gives one
+    lng        REAL,
+    category   TEXT                            -- tropical_cyclone | flood | volcano | status
 );
 
 CREATE TABLE IF NOT EXISTS news (
@@ -90,7 +93,8 @@ CREATE TABLE IF NOT EXISTS news (
     summary      TEXT,
     source       TEXT,
     published_at TEXT,
-    fetched_at   TEXT NOT NULL
+    fetched_at   TEXT NOT NULL,
+    tags         TEXT                          -- comma-separated hazard and place tags, e.g. typhoon,batangas
 );
 
 -- ---------- SYNC STATUS ----------

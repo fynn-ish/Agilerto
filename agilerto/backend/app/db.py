@@ -18,11 +18,28 @@ def connect() -> sqlite3.Connection:
     return conn
 
 
+# Columns added after the first release. CREATE TABLE IF NOT EXISTS does not change an existing table,
+# so databases made by an earlier step get them here, without losing any data.
+MIGRATIONS = {
+    "advisories": [("lat", "REAL"), ("lng", "REAL"), ("category", "TEXT")],
+    "news": [("tags", "TEXT")],
+}
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    for table, columns in MIGRATIONS.items():
+        existing = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        for name, col_type in columns:
+            if name not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {col_type}")
+
+
 def init_db() -> None:
-    """Create all tables if they don't exist yet (safe to run repeatedly)."""
+    """Create all tables if they don't exist yet and upgrade older ones (safe to run repeatedly)."""
     conn = connect()
     try:
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        _migrate(conn)
         conn.commit()
     finally:
         conn.close()

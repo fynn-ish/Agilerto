@@ -4,16 +4,16 @@ import os
 # Places whose weather is fetched on every refresh. The dashboard shows the nearest one
 # (within WEATHER_MAX_KM) to the user. Keep this list in sync with PLACES in frontend/src/constants.js.
 AREAS = [
-    {"name": "Lipa City",       "lat": 13.9411, "lng": 121.1631},
-    {"name": "Tanauan City",    "lat": 14.0859, "lng": 121.1497},
-    {"name": "Santo Tomas",     "lat": 14.1078, "lng": 121.1414},
-    {"name": "Batangas City",   "lat": 13.7565, "lng": 121.0583},
-    {"name": "Tagaytay City",   "lat": 14.1153, "lng": 120.9621},
-    {"name": "Calamba City",    "lat": 14.2117, "lng": 121.1653},
-    {"name": "Santa Rosa City", "lat": 14.3122, "lng": 121.1114},
-    {"name": "San Pablo City",  "lat": 14.0683, "lng": 121.3253},
-    {"name": "Lucena City",     "lat": 13.9373, "lng": 121.6171},
-    {"name": "Imus City",       "lat": 14.4297, "lng": 120.9367},
+    {"name": "Lipa City",       "lat": 13.9411, "lng": 121.1631, "province": "Batangas"},
+    {"name": "Tanauan City",    "lat": 14.0859, "lng": 121.1497, "province": "Batangas"},
+    {"name": "Santo Tomas",     "lat": 14.1078, "lng": 121.1414, "province": "Batangas"},
+    {"name": "Batangas City",   "lat": 13.7565, "lng": 121.0583, "province": "Batangas"},
+    {"name": "Tagaytay City",   "lat": 14.1153, "lng": 120.9621, "province": "Cavite"},
+    {"name": "Calamba City",    "lat": 14.2117, "lng": 121.1653, "province": "Laguna"},
+    {"name": "Santa Rosa City", "lat": 14.3122, "lng": 121.1114, "province": "Laguna"},
+    {"name": "San Pablo City",  "lat": 14.0683, "lng": 121.3253, "province": "Laguna"},
+    {"name": "Lucena City",     "lat": 13.9373, "lng": 121.6171, "province": "Quezon"},
+    {"name": "Imus City",       "lat": 14.4297, "lng": 120.9367, "province": "Cavite"},
 ]
 WEATHER_MAX_KM = 30            # farther than this from every area = "no weather for this location"
 WEATHER_KEEP_SNAPSHOTS = 24    # history kept per area
@@ -29,7 +29,7 @@ REFRESH_MINUTES = int(os.getenv("REFRESH_MINUTES", "15"))
 SCHEDULER_ENABLED = os.getenv("DISABLE_SCHEDULER", "0") != "1"
 
 # Data older than this is labeled "stale" in the UI (minutes)
-STALE_MINUTES = {"weather": 180, "earthquakes": 120}
+STALE_MINUTES = {"weather": 180, "earthquakes": 120, "advisories": 180, "news": 720}
 
 HTTP_TIMEOUT = 10
 USER_AGENT = "DisasterInfoSystem/0.2 (student project)"
@@ -47,3 +47,35 @@ SOURCE_MAX_CHARS = 700
 FACILITY_RADIUS_KM = 15
 QUAKE_RADIUS_KM = 300
 QUESTION_MAX_CHARS = 500
+
+
+# ---------- advisories and news (Step 4) ----------
+# GDACS: automated alerts from the UN and European Commission (CC BY 4.0, credit required).
+# They are NOT official Philippine warnings, and the app says so.
+GDACS_URL = "https://www.gdacs.org/xml/rss.xml"
+GDACS_TYPES = ("TC", "FL", "VO")                  # tropical cyclone, flood, volcano (earthquakes come from USGS)
+GDACS_NEAR_BOX = (4.0, 21.5, 116.0, 127.5)        # min_lat, max_lat, min_lng, max_lng: events here count as "near the Philippines"
+
+# PAGASA has no data feed. This page says either that no cyclone is active, or links the bulletin PDF.
+PAGASA_BULLETIN_URL = "https://www.pagasa.dost.gov.ph/tropical-cyclone/severe-weather-bulletin"
+
+# Advisories are shown with their age while offline, but dropped after this long without being confirmed.
+ADVISORY_MAX_AGE_HOURS = 168
+
+# Philippine news feeds (RSS). Each fails on its own. Some outlets block automated requests.
+NEWS_FEEDS = [
+    {"name": "Rappler",                  "url": "https://www.rappler.com/feed/"},
+    {"name": "Manila Bulletin",          "url": "https://mb.com.ph/rss/articles"},
+    {"name": "Philippine Daily Inquirer", "url": "https://www.inquirer.net/fullfeed"},
+]
+# GDELT: free news index, no key. It allows about one request every 5 seconds, shared by everyone.
+GDELT_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
+GDELT_QUERY = ("(typhoon OR earthquake OR flood OR landslide OR volcano OR Taal OR PAGASA OR PHIVOLCS OR NDRRMC) "
+               "(Philippines OR Batangas OR Calabarzon OR Laguna OR Cavite)")
+GDELT_TIMESPAN = "3d"
+GDELT_MAX_RECORDS = 75
+
+NEWS_KEEP_DAYS = 14             # older headlines are deleted after a successful refresh
+NEWS_SHOW_DAYS = 3              # the dashboard and assistant use headlines from the last few days
+SOURCE_MIN_INTERVAL_MINUTES = {"news": 30}   # news is checked less often than weather
+MAX_RESPONSE_BYTES = 5_000_000

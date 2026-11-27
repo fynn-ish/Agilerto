@@ -16,6 +16,14 @@ TEXT = {
         "refuse_prediction": (
             "I can't predict disasters such as earthquakes, floods, or typhoons. For official warnings, check PAGASA and "
             "PHIVOLCS. I can show the current weather, recent earthquakes, and the nearest evacuation centers from my saved data."),
+        "refuse_rules": (
+            "I can only answer from my saved disaster information, and I can't change how I work. You can ask about nearby "
+            "help, the weather, recent earthquakes, advisories, news, hotlines, or safety tips."),
+        "distress": (
+            "I'm really sorry you're going through this. You don't have to face it alone. If you are in immediate danger, "
+            "call 911. You can also call the NCMH Crisis Hotline, free and open 24/7: 1553 (landline) or 0917 899 8727. "
+            "If someone is with you, please tell them how you feel. I'm a disaster information assistant, so I can't give "
+            "you the support a person can."),
         "emergency_head": "This sounds like an emergency. Call 911 now. I cannot send help from here.",
         "emergency_numbers": "Emergency numbers:",
         "emergency_nearest": "Nearest {label}:",
@@ -55,6 +63,15 @@ TEXT = {
             "Hindi ako makapag-predict ng mga sakuna tulad ng lindol, baha, o bagyo. Para sa mga opisyal na babala, tingnan "
             "ang PAGASA at PHIVOLCS. Maipapakita ko ang kasalukuyang panahon, ang mga kamakailang lindol, at ang pinakamalapit "
             "na evacuation center mula sa naka-save kong data."),
+        "refuse_rules": (
+            "Makakasagot lang ako gamit ang naka-save kong impormasyon tungkol sa sakuna, at hindi ko mababago ang paraan ng "
+            "paggana ko. Puwede kang magtanong tungkol sa kalapit na tulong, panahon, mga kamakailang lindol, advisory, balita, "
+            "hotline, o safety tips."),
+        "distress": (
+            "Pasensya na at nararanasan mo ito. Hindi mo kailangang harapin ito nang mag-isa. Kung nasa agarang panganib ka, "
+            "tumawag sa 911. Maaari ka ring tumawag sa NCMH Crisis Hotline, libre at bukas 24/7: 1553 (landline) o "
+            "0917 899 8727. Kung may kasama ka, sabihin mo sa kanila ang nararamdaman mo. Isa akong assistant para sa "
+            "impormasyon sa sakuna, kaya hindi ko maibibigay ang suportang maibibigay ng isang tao."),
         "emergency_head": "Mukhang emergency ito. Tumawag agad sa 911. Hindi ako makakapagpadala ng tulong mula rito.",
         "emergency_numbers": "Mga emergency number:",
         "emergency_nearest": "Pinakamalapit na {label}:",

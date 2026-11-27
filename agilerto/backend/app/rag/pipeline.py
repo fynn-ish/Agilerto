@@ -158,14 +158,19 @@ def answer_question(conn, question: str, lat: float, lng: float, *, llm_chat=Non
             "notices": _notices(shown, online, now, lang), "model": model, "elapsed_ms": ms(), **extra,
         }
 
-    # 1) emergency in progress: no AI, show numbers and nearest help immediately
-    if (em := G.detect_emergency(q)):
-        return _emergency(conn, q, em, lat, lng, lang, result)
-
-    # 2) decisions and predictions are not ours to make
-    if (code := G.detect_refusal(q)):
-        _log(conn, f"refused_{code}", None, 0, ms())
-        return result("refused", t(lang, f"refuse_{code}"), refusal=code, emergency_numbers=_hotline_rows(conn))
+    # 1) safety first, in plain code, before any AI: distress, emergency, rule-override attempts, decisions, predictions
+    kind, detail = G.classify(q)
+    if kind == "distress":
+        _log(conn, "distress", None, 0, ms())                     # logged without the question or any location
+        return result("distress", t(lang, "distress"), emergency_numbers=list(config.CRISIS_LINES))
+    if kind == "emergency":
+        return _emergency(conn, q, {"kind": detail}, lat, lng, lang, result)
+    if kind == "injection":
+        _log(conn, "refused_rules", None, 0, ms())
+        return result("refused", t(lang, "refuse_rules"), refusal="rules", emergency_numbers=_hotline_rows(conn))
+    if kind == "refusal":
+        _log(conn, f"refused_{detail}", None, 0, ms())
+        return result("refused", t(lang, f"refuse_{detail}"), refusal=detail, emergency_numbers=_hotline_rows(conn))
 
     # 3) find the saved records
     it = I.detect(q)

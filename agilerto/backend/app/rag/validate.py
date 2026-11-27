@@ -23,6 +23,16 @@ _DECISION_RX = [re.compile(p, re.I) for p in [
 ]]
 
 
+_URL_RX = re.compile(r"(?:https?://|www\.)[^\s)\]>]+", re.I)
+
+
+def invented_links(answer: str, allowed_texts: list[str]) -> list[str]:
+    """Web links in the answer that appear in none of the sources. Sources carry links separately, so a link written
+    into the answer text is something the model made up."""
+    blob = " ".join(allowed_texts).lower()
+    return [u for u in _URL_RX.findall(answer) if u.lower().rstrip(".,;:") not in blob]
+
+
 def tells_user_what_to_do(answer: str) -> bool:
     return any(rx.search(answer) for rx in _DECISION_RX)
 
@@ -67,6 +77,9 @@ def check(answer: str, n_sources: int, allowed_texts: list[str]) -> tuple[str | 
         return "it has no citations like [1]", cited
     if tells_user_what_to_do(answer):
         return "it tells the user whether to evacuate or whether they are safe, which this system must never do", cited
+    links = invented_links(answer, allowed_texts)
+    if links:
+        return f"it contains a web link that is not in the sources: {links[:2]}", cited
     allowed_digits = [re.sub(r"\D", "", a) for a in allowed_texts]
     unsupported = [d for d in phone_like_numbers(answer) if not any(d in a for a in allowed_digits)]
     if unsupported:

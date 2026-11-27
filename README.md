@@ -21,8 +21,8 @@ Agilerto shows the nearest hospitals, evacuation centers, fire stations, and pol
 | 0 to 1 | Schema, seed data, facilities API, offline map | Done |
 | 2 | Weather and earthquake ingestion | Done |
 | 3 | AI chat with citations, guardrails, status badge | Done |
-| 4 | News and advisory ingestion | Planned |
-| 5 | Offline map tiles (PMTiles) | Planned |
+| 4 | News and advisory ingestion | Done |
+| 5 | Offline map tiles (PMTiles) | Done |
 | 6 | Packaging and deployment | Planned |
 
 ## Quick start

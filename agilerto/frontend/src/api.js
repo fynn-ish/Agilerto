@@ -67,11 +67,21 @@ export async function askChat({ question, lat, lng }, signal) {
     body: JSON.stringify({ question, lat, lng }),
     signal,
   })
-  if (!res.ok) throw new Error(`The assistant returned an error (${res.status})`)
+  if (!res.ok) {
+    const err = new Error(`The assistant returned an error (${res.status})`)
+    err.status = res.status
+    err.retryAfter = Number(res.headers.get('Retry-After')) || null    // set when too many questions were asked
+    throw err
+  }
   return res.json()
 }
 
 // Is the local AI (Ollama) running, and is the model installed?
 export async function fetchAiStatus() {
   try { return await getJson('/api/ai/status') } catch { return null }
+}
+
+// Which map tiles can be used: a local offline file if the backend has a usable one, otherwise online tiles.
+export async function fetchTilesInfo() {
+  try { return await getJson('/api/tiles/info') } catch { return null }
 }

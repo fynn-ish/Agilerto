@@ -34,10 +34,11 @@ function popupNode(f) {
   return root
 }
 
-export default function FacilityMap({ center, radiusKm, facilities, selectedId, citedIds, onSelect, onPick }) {
+export default function FacilityMap({ center, radiusKm, facilities, selectedId, citedIds, tiles, onSelect, onPick }) {
   const elRef = useRef(null)
   const mapRef = useRef(null)
   const layersRef = useRef({ markers: L.layerGroup(), you: null, ring: null })
+  const baseLayerRef = useRef(null)
   const markerById = useRef(new Map())
   const onPickRef = useRef(onPick)
   const onSelectRef = useRef(onSelect)
@@ -47,13 +48,37 @@ export default function FacilityMap({ center, radiusKm, facilities, selectedId, 
   // Create the map once.
   useEffect(() => {
     const map = L.map(elRef.current, { zoomControl: true }).setView([center.lat, center.lng], 13)
-    L.tileLayer(TILE_URL, { maxZoom: 18, attribution: TILE_ATTRIBUTION }).addTo(map)
     layersRef.current.markers.addTo(map)
     map.on('click', (e) => onPickRef.current({ lat: e.latlng.lat, lng: e.latlng.lng }))
     mapRef.current = map
     return () => { map.remove(); mapRef.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Base map: local offline tiles when the backend has a usable file, otherwise online tiles (needs internet).
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !tiles) return undefined
+    let cancelled = false
+    baseLayerRef.current?.remove()
+    baseLayerRef.current = null
+    if (tiles.mode === 'local') {
+      window.L = L // protomaps-leaflet looks for Leaflet as a global
+      import('protomaps-leaflet')
+        .then(({ leafletLayer }) => {
+          if (cancelled || !mapRef.current) return
+          const layer = leafletLayer({
+            url: tiles.info.url, flavor: 'light', lang: 'en', maxZoom: 18, maxDataZoom: tiles.info.maxzoom,
+          })
+          layer.addTo(map)
+          baseLayerRef.current = layer
+        })
+        .catch((err) => console.error('Offline map could not start', err))
+    } else {
+      baseLayerRef.current = L.tileLayer(TILE_URL, { maxZoom: 18, attribution: TILE_ATTRIBUTION }).addTo(map)
+    }
+    return () => { cancelled = true }
+  }, [tiles])
 
   // Your position + search ring; re-frame when they change.
   useEffect(() => {

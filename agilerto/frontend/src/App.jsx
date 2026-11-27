@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { fetchFacilities } from './api'
+import { fetchFacilities, fetchTilesInfo } from './api'
 import { DEFAULT_LOCATION, FACILITY_TYPES } from './constants'
 import HotlineBar from './components/HotlineBar'
 import LocationControls from './components/LocationControls'
@@ -8,6 +8,7 @@ import FacilityMap from './components/FacilityMap'
 import FacilityList from './components/FacilityList'
 import ConditionsPanel, { alertCount, importantAlerts } from './components/ConditionsPanel'
 import ChatPanel from './components/ChatPanel'
+import MapStatus from './components/MapStatus'
 import { useDashboard } from './hooks/useDashboard'
 
 function loadSavedLocation() {
@@ -26,12 +27,17 @@ export default function App() {
   const [state, setState] = useState({ status: 'loading', facilities: [], fromCache: false, savedAt: null })
   const dash = useDashboard(location)
   const [tab, setTab] = useState('places')          // 'places' | 'ask' | 'conditions'
+  const [tiles, setTiles] = useState(null)              // null while checking, then { mode: 'local' | 'online', info }
   const [cited, setCited] = useState([])            // facilities cited by the assistant's last answer
 
   const updateLocation = useCallback((loc) => {
     setLocation(loc)
     setSelectedId(null)
     try { localStorage.setItem('location', JSON.stringify(loc)) } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => {
+    fetchTilesInfo().then((info) => setTiles(info?.usable ? { mode: 'local', info } : { mode: 'online', info }))
   }, [])
 
   // Fetch everything in range once; type filters are applied locally so they're instant.
@@ -124,16 +130,20 @@ export default function App() {
         )}
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <div id="map-panel" className="h-[55vh] lg:sticky lg:top-16 lg:h-[calc(100vh-5rem)]">
-            <FacilityMap
-              center={location}
-              radiusKm={radius}
-              facilities={mapFacilities}
-              selectedId={selectedId}
-              citedIds={citedIds}
-              onSelect={setSelectedId}
-              onPick={({ lat, lng }) => updateLocation({ lat, lng, label: 'the point you picked', source: 'map' })}
-            />
+          <div id="map-panel" className="flex h-[55vh] flex-col lg:sticky lg:top-16 lg:h-[calc(100vh-5rem)]">
+            <div className="min-h-0 flex-1">
+              <FacilityMap
+                center={location}
+                radiusKm={radius}
+                facilities={mapFacilities}
+                selectedId={selectedId}
+                citedIds={citedIds}
+                tiles={tiles}
+                onSelect={setSelectedId}
+                onPick={({ lat, lng }) => updateLocation({ lat, lng, label: 'the point you picked', source: 'map' })}
+              />
+            </div>
+            <MapStatus tiles={tiles} center={location} />
           </div>
 
           <div>

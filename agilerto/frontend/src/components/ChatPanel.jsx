@@ -34,15 +34,15 @@ function AiBadge({ ai }) {
   )
 }
 
-function Hotlines({ numbers }) {
+function Hotlines({ numbers, calm = false }) {
   if (!numbers?.length) return null
   return (
     <ul className="flex flex-wrap gap-2 pt-2">
       {numbers.map((n) => (
-        <li key={n.agency}>
+        <li key={`${n.agency}-${n.number}`}>
           <a
             href={`tel:${n.number.replace(/[^\d+]/g, '')}`}
-            className="inline-flex min-h-11 items-center gap-2 rounded-md border-2 border-alarm px-3 font-bold text-alarm hover:bg-alarm hover:text-white"
+            className={`inline-flex min-h-11 items-center gap-2 rounded-md border-2 px-3 font-bold ${calm ? 'border-brand text-brand hover:bg-brand hover:text-white' : 'border-alarm text-alarm hover:bg-alarm hover:text-white'}`}
           >
             <span className="text-lg tabular-nums">{n.number}</span>
             <span className="text-sm font-normal">{n.agency}</span>
@@ -81,6 +81,7 @@ function AnswerText({ text, onCite }) {
 
 const OUTCOME_TITLE = {
   emergency: 'Emergency',
+  distress: 'You are not alone',
   refused: 'Something I can’t answer',
   ai_unavailable: 'Showing saved records (the AI is not running)',
   fallback: 'Showing saved records (answer could not be verified)',
@@ -95,6 +96,7 @@ function AssistantMessage({ msg, onSelectFacility }) {
   const [active, setActive] = useState(null)
   const emergency = r.outcome === 'emergency'
   const flagged = ['ai_unavailable', 'fallback', 'busy'].includes(r.outcome)
+  const distress = r.outcome === 'distress'
 
   function cite(n) {
     setActive(n)
@@ -104,6 +106,7 @@ function AssistantMessage({ msg, onSelectFacility }) {
 
   const box = emergency
     ? 'border-alarm bg-red-50'
+    : distress ? 'border-sky-400 bg-sky-50'
     : flagged ? 'border-amber-500 bg-amber-50' : 'border-line bg-white'
 
   return (
@@ -111,8 +114,8 @@ function AssistantMessage({ msg, onSelectFacility }) {
       {OUTCOME_TITLE[r.outcome] && <p className={`pb-1 text-sm font-bold ${emergency ? 'text-alarm' : ''}`}>{OUTCOME_TITLE[r.outcome]}</p>}
       <AnswerText text={r.answer} onCite={cite} />
 
-      {(emergency || ['refused', 'no_sources', 'not_in_sources', 'no_advisories'].includes(r.outcome)) && (
-        <Hotlines numbers={r.emergency_numbers} />
+      {(emergency || distress || ['refused', 'no_sources', 'not_in_sources', 'no_advisories'].includes(r.outcome)) && (
+        <Hotlines numbers={r.emergency_numbers} calm={distress} />
       )}
 
       {r.ai_message && r.outcome === 'ai_unavailable' && <p className="pt-2 text-sm text-muted">{r.ai_message}</p>}
@@ -215,9 +218,12 @@ export default function ChatPanel({ location, dash, onCite, onSelectFacility }) 
       fetchAiStatus().then((s) => s && setAi(s))
     } catch (err) {
       const stopped = err.name === 'AbortError'
+      const slowDown = err.status === 429
       setMessages((m) => [...m, {
         role: 'assistant',
-        error: stopped ? 'Stopped. The assistant took too long or you cancelled.' : 'Could not reach the assistant. Check that the backend is running.',
+        error: slowDown
+          ? `Many questions were sent in a short time. Please wait about ${err.retryAfter ?? 60} seconds and try again. If this is an emergency, call 911.`
+          : stopped ? 'Stopped. The assistant took too long or you cancelled.' : 'Could not reach the assistant. Check that the backend is running.',
       }])
     } finally {
       clearTimeout(timeout)

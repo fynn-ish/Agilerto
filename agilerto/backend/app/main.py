@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import config, scheduler
 from .db import init_db
+from . import tiles
 from .routes import chat, dashboard, facilities, reference
 
 
@@ -37,6 +38,8 @@ app.include_router(facilities.router, prefix="/api")
 app.include_router(reference.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
+app.include_router(tiles.api_router, prefix="/api")
+app.include_router(tiles.public_router)
 
 # Production: serve the built React app from this same server (mounted last).
 DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"

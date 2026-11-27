@@ -4,3 +4,9 @@ __pycache__/
 *.pyc
 .venv/
 backend/data/disaster.db*
+backend/data/tiles/*.pmtiles
+backend/data/tiles/*.pmtiles.part
+backend/data/tiles/*.pmtiles.bak
+backend/tools/bin/
+backend/eval_results.csv
+

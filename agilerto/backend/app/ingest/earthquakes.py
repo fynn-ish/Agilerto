@@ -12,7 +12,7 @@ URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 
 def fetch_events(client: httpx.Client, now) -> dict:
-    resp = client.get(URL, params={
+    resp = client.get(config.USGS_URL, params={
         "format": "geojson",
         "starttime": (now - timedelta(days=config.QUAKE_FETCH_DAYS)).strftime("%Y-%m-%dT%H:%M:%S"),
         "minmagnitude": config.QUAKE_MIN_MAGNITUDE,

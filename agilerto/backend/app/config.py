@@ -52,12 +52,12 @@ QUESTION_MAX_CHARS = 500
 # ---------- advisories and news (Step 4) ----------
 # GDACS: automated alerts from the UN and European Commission (CC BY 4.0, credit required).
 # They are NOT official Philippine warnings, and the app says so.
-GDACS_URL = "https://www.gdacs.org/xml/rss.xml"
+GDACS_URL = os.getenv("GDACS_URL", "https://www.gdacs.org/xml/rss.xml")
 GDACS_TYPES = ("TC", "FL", "VO")                  # tropical cyclone, flood, volcano (earthquakes come from USGS)
 GDACS_NEAR_BOX = (4.0, 21.5, 116.0, 127.5)        # min_lat, max_lat, min_lng, max_lng: events here count as "near the Philippines"
 
 # PAGASA has no data feed. This page says either that no cyclone is active, or links the bulletin PDF.
-PAGASA_BULLETIN_URL = "https://www.pagasa.dost.gov.ph/tropical-cyclone/severe-weather-bulletin"
+PAGASA_BULLETIN_URL = os.getenv("PAGASA_BULLETIN_URL", "https://www.pagasa.dost.gov.ph/tropical-cyclone/severe-weather-bulletin")
 
 # Advisories are shown with their age while offline, but dropped after this long without being confirmed.
 ADVISORY_MAX_AGE_HOURS = 168
@@ -69,7 +69,7 @@ NEWS_FEEDS = [
     {"name": "Philippine Daily Inquirer", "url": "https://www.inquirer.net/fullfeed"},
 ]
 # GDELT: free news index, no key. It allows about one request every 5 seconds, shared by everyone.
-GDELT_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
+GDELT_URL = os.getenv("GDELT_URL", "https://api.gdeltproject.org/api/v2/doc/doc")
 GDELT_QUERY = ("(typhoon OR earthquake OR flood OR landslide OR volcano OR Taal OR PAGASA OR PHIVOLCS OR NDRRMC) "
                "(Philippines OR Batangas OR Calabarzon OR Laguna OR Cavite)")
 GDELT_TIMESPAN = "3d"
@@ -79,3 +79,27 @@ NEWS_KEEP_DAYS = 14             # older headlines are deleted after a successful
 NEWS_SHOW_DAYS = 3              # the dashboard and assistant use headlines from the last few days
 SOURCE_MIN_INTERVAL_MINUTES = {"news": 30}   # news is checked less often than weather
 MAX_RESPONSE_BYTES = 5_000_000
+
+# ---------- offline map tiles (Step 5) ----------
+# A PMTiles file (Protomaps basemap, version 4 or newer) in backend/data/tiles/. See `python get_tiles.py`.
+TILES_DIR = os.getenv("TILES_DIR", "")                    # default: backend/data/tiles
+TILES_FILE = os.getenv("TILES_FILE", "calabarzon.pmtiles")
+
+# ---------- guardrails (Step 5) ----------
+# Shown only when someone writes that they may hurt themselves. Kept here (not in the hotline CSV) so updating the
+# data files never overwrites them. Source: DOH / National Center for Mental Health (NCMH) Crisis Hotline, 24/7,
+# as published by DOH and repeated in a 2025 CHR statement and a Dec 2025 DOH-sourced news report.
+# NUMBERS CAN CHANGE: confirm them at doh.gov.ph before any real deployment.
+CRISIS_LINES = [
+    {"agency": "National Emergency Hotline", "number": "911"},
+    {"agency": "NCMH Crisis Hotline (landline)", "number": "1553"},
+    {"agency": "NCMH Crisis Hotline (mobile)", "number": "0917 899 8727"},
+    {"agency": "NCMH Crisis Hotline (mobile 2)", "number": "0966 351 4518"},
+]
+CHAT_RATE_LIMIT = int(os.getenv("CHAT_RATE_LIMIT", "20"))      # questions per client per window
+CHAT_RATE_WINDOW_SECONDS = int(os.getenv("CHAT_RATE_WINDOW_SECONDS", "60"))
+
+# Every data source address can be replaced with an environment variable. This is how you "block one API" while
+# testing: for example  $env:GDACS_URL="http://127.0.0.1:9/"  makes GDACS unreachable and leaves everything else alone.
+OPEN_METEO_URL = os.getenv("OPEN_METEO_URL", "https://api.open-meteo.com/v1/forecast")
+USGS_URL = os.getenv("USGS_URL", "https://earthquake.usgs.gov/fdsnws/event/1/query")

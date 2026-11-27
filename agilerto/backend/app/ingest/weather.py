@@ -18,7 +18,7 @@ DAILY = ("weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,"
 
 
 def fetch_forecast(client: httpx.Client, lat: float, lng: float) -> dict:
-    resp = client.get(URL, params={
+    resp = client.get(config.OPEN_METEO_URL, params={
         "latitude": lat, "longitude": lng, "current": CURRENT, "daily": DAILY,
         "timezone": "auto", "forecast_days": 3,
     })
